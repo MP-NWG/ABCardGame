@@ -18,11 +18,6 @@ public class CardCheck : MonoBehaviour
     public void Start()
     {
         mText = GetComponent<Text>();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
         StartCoroutine(GetTest());
     }
 
@@ -44,6 +39,7 @@ public class CardCheck : MonoBehaviour
             {
                 string test = request.downloadHandler.text;
                 mText.text = test;
+                if(test == "") StartCoroutine(GetTest());
                 Debug.Log("test:"+test);
             }
         }
