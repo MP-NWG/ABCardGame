@@ -1,38 +1,42 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public class LogIn : MonoBehaviour
 {
 
-    public GameManager mManager;
-    public string id;
+    //public GameManager mManager;
+    //public string id;
+
+    //カギ
+    string Sidekey = "Playerside";
+    public int Plyernum;
 
     void Login(string id)
     {
-        mManager.mID = id;
-        Instantiate(mManager);
+        //mManager.mID = id;
+        //Instantiate(mManager);
     }
 
-    //プレイヤー１か２判別
+    //プレイヤー１Button
     public void Plyer1()
     {
-        id = "Plyer1";
+        Plyernum = 1;
+        PlayerPrefs.SetInt(Sidekey, Plyernum);
+        //Debug.Log(Plyernum);
     }
-
+    //プレイヤー2ボタン
     public void Plyer2()
     {
-        id = "Plyer2";
+        Plyernum = 2;
+        PlayerPrefs.SetInt(Sidekey, Plyernum);
+        //Debug.Log(Plyernum);
     }
 
-
-    void stertLogin()
+    //デバッグ用
+    public void debugOn()
     {
-        
-
-    }
-
-    void update()
-    {//確認
-       print(id);
+        int usedebug = PlayerPrefs.GetInt(Sidekey);
+        Debug.Log(usedebug);
     }
 }
