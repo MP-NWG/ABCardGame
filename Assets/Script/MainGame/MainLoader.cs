@@ -2,30 +2,27 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class MainLoader : MonoBehaviour
+namespace GameMain
 {
-    enum Job
+    public class MainLoader : MonoBehaviour
     {
-        Emperor,
-        Slave
-    }
+        [SerializeField, Tooltip("説明文")]
+        PlayerSide job;
 
-    [SerializeField, Tooltip("説明文")]
-    Job job;
-
-    [SerializeField]
-    GameObject board;
+        [SerializeField]
+        GameObject board;
     
-    void Start()
-    {
-        Vector3 scale = board.transform.localScale;
-
-        switch(job)
+        void Start()
         {
-            case Job.Emperor: scale.y =  1; break;
-            case Job.Slave:   scale.y = -1; break;
-        }
+            Vector3 scale = board.transform.localScale;
 
-        board.transform.localScale = scale;
+            switch(job)
+            {
+                case PlayerSide.Emperor: scale.y =  1; break;
+                case PlayerSide.Slave:   scale.y = -1; break;
+            }
+
+            board.transform.localScale = scale;
+        }
     }
 }
