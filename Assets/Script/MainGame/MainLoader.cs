@@ -7,7 +7,7 @@ namespace GameMain
     public class MainLoader : MonoBehaviour
     {
         [SerializeField, Tooltip("説明文")]
-        PlayerSide job;
+        public PlayerSide job;
 
         [SerializeField]
         GameObject board;
