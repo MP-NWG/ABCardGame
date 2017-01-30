@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
-using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+
 
 public class LogIn : MonoBehaviour
 {
@@ -23,14 +24,14 @@ public class LogIn : MonoBehaviour
     {
         Plyernum = 1;
         PlayerPrefs.SetInt(Sidekey, Plyernum);
-        //Debug.Log(Plyernum);
+        SceneManager.LoadScene("main");
     }
     //プレイヤー2ボタン
     public void Plyer2()
     {
         Plyernum = 2;
         PlayerPrefs.SetInt(Sidekey, Plyernum);
-        //Debug.Log(Plyernum);
+        SceneManager.LoadScene("main");
     }
 
     //デバッグ用
