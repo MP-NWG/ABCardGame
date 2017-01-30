@@ -3,14 +3,14 @@ using System.Collections;
 using UnityEngine.SceneManagement;
 
 
-public class LogIn : MonoBehaviour
+public class LogIn : SingletonMonoBehaviourFast<LogIn>
 {
 
     //public GameManager mManager;
     //public string id;
 
     //カギ
-    string Sidekey = "Playerside";
+    //string Sidekey = "Playerside";
     public int Plyernum;
 
     void Login(string id)
@@ -23,21 +23,21 @@ public class LogIn : MonoBehaviour
     public void Plyer1()
     {
         Plyernum = 1;
-        PlayerPrefs.SetInt(Sidekey, Plyernum);
+        //PlayerPrefs.SetInt(Sidekey, Plyernum);
         SceneManager.LoadScene("main");
     }
     //プレイヤー2ボタン
     public void Plyer2()
     {
         Plyernum = 2;
-        PlayerPrefs.SetInt(Sidekey, Plyernum);
+        //PlayerPrefs.SetInt(Sidekey, Plyernum);
         SceneManager.LoadScene("main");
     }
 
     //デバッグ用
     public void debugOn()
     {
-        int usedebug = PlayerPrefs.GetInt(Sidekey);
-        Debug.Log(usedebug);
+        //int usedebug = PlayerPrefs.GetInt(Sidekey);
+        //Debug.Log(usedebug);
     }
 }
