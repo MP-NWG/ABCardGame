@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Networking;
 
 namespace GameMain
 {
@@ -84,18 +85,16 @@ namespace GameMain
 
         /// <summary> カードの情報を送る </summary>
         /// <param name="info"> カードの情報 </param>
-        /// <returns> 送信に成功したか </returns>
-        public bool SendCardServer(CardInfo info)
+        public void SendCardServer(CardInfo info)
         {
-            return false;
+            StartCoroutine(SetJob(info));
         }
 
         /// <summary> サーバーからデータを受け取る </summary>
         /// <param name="side"> プレイヤーのサイド </param>
-        /// <returns> データの受け取りに成功したか </returns>
-        public bool ReceiveCardServer(PlayerSide side)
+        public void ReceiveCardServer(PlayerSide side)
         {
-            return false;
+            StartCoroutine(GetJob(side));
         }
 
         /// <summary> 勝敗判定 </summary>
@@ -104,5 +103,68 @@ namespace GameMain
         {
             throw null;
         }
+
+        /// <summary>
+        /// カードをPHPに送り出す
+        /// </summary>
+        /// <param name="info"></param>
+        /// <returns></returns>
+        IEnumerator SetJob(CardInfo info)
+        {
+            UnityWebRequest request = UnityWebRequest.Get("http://127.0.0.1:8888/ABCardGame/" + "Player"+ (int)info.side + "DataSave.php?class=" + info.job.ToString());
+            yield return request.Send();
+
+            // 何らかのエラーがあったら
+            if (request.isError)
+            {
+                // エラー処理
+                Debug.Log("エラー");
+            }
+            else {
+                Debug.Log(request.responseCode);
+                // レスポンスコードを見る
+                if (request.responseCode == 200)
+                {
+                    string test = request.downloadHandler.text;
+                    Debug.Log(test);
+                }
+            }
+        }
+
+        /// <summary>
+        /// カードをPHPから受け取る
+        /// </summary>
+        /// <returns></returns>
+        IEnumerator GetJob(PlayerSide side)
+        {
+            UnityWebRequest request = UnityWebRequest.Get("http://127.0.0.1:8888/ABCardGame/" + "Player"+ (int)side+ "DataGet.php");
+            yield return request.Send();
+
+            // 何らかのエラーがあったら
+            if (request.isError)
+            {
+                // エラー処理
+                Debug.Log("エラー");
+            }
+            else {
+                Debug.Log(request.responseCode);
+                // レスポンスコードを見る
+                if (request.responseCode == 200)
+                {
+                    string test = request.downloadHandler.text;
+                    if (test == "") StartCoroutine(GetJob(side));
+                    if (side == PlayerSide.Emperor)
+                    {
+                        EmperorSideSelect.job = (JobClass)int.Parse(test);
+                    }
+                    else
+                    {
+                        SlavesSideSelect.job = (JobClass)int.Parse(test);
+                    }
+                    Debug.Log("受け取ったデータ = " + (JobClass)int.Parse(test));
+                }
+            }
+        }
+
     }
 }
