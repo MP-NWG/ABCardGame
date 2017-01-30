@@ -19,7 +19,8 @@ namespace GameMain
 
         void Start()
         {
-
+            EmperorSideSelect = new CardInfo();
+            SlavesSideSelect  = new CardInfo();
         }
 
         void Update()
@@ -68,9 +69,20 @@ namespace GameMain
         PlayerSide GetActivePlayerSide()
         {
             //idから変換
-            int id = PlayerPrefs.GetInt("");
+            int id = PlayerPrefs.GetInt("Playerside");
             PlayerSide side = (PlayerSide)System.Enum.ToObject(typeof(PlayerSide), id);
             return side;
+        }
+
+        /// <summary> 敵サイドの情報の取得</summary>
+        /// <returns> 敵サイドの情報 </returns>
+        PlayerSide GetEnemyPlayerSide()
+        {
+            PlayerSide playerSide = GetActivePlayerSide();
+            if(playerSide == PlayerSide.Emperor) return PlayerSide.Slave;
+            if(playerSide == PlayerSide.Slave)   return PlayerSide.Emperor;
+
+            throw null;
         }
 
         public void MoveCardBattlePlace(CardInfo card)
@@ -82,7 +94,7 @@ namespace GameMain
 
             //既に選択しているカードがあるか
             CardInfo selectCard = GetSelectCard(card.side);
-            if(selectCard != null)
+            if(selectCard.card != null)
             {
                 Vector3 returnPos = card.card.transform.position;
 
@@ -115,14 +127,7 @@ namespace GameMain
         /// <summary> カードを確定し、サーバーに送る </summary>
         public void ConfirmCard()
         {
-            //PlayerSide side = GetActivePlayerSide();
-            //if(GetSelectCard(side) == null)
-            
-            //デバッグ用
-
-            PlayerSide side = GetComponent<MainLoader>().job;
-
-            Debug.Log(side.ToString());
+            PlayerSide side = GetActivePlayerSide();
 
             if(GetSelectCard(side) == null)
             {
@@ -130,10 +135,18 @@ namespace GameMain
                 return;
             }
 
+            //再度選択できないようにする
             playerSelectArea.cardSelect = false;
 
+            //送信
             CardInfo selectCard = GetSelectCard(side);
             SendCardServer(selectCard);
+            
+            //相手の選択待ち
+            PlayerSide enemySide = GetEnemyPlayerSide();
+            ReceiveCardServer(enemySide);
+
+
         }
 
         /// <summary> カードの情報を送る </summary>
@@ -216,13 +229,14 @@ namespace GameMain
                     if (test == "") StartCoroutine(GetJob(side));
                     if (side == PlayerSide.Emperor)
                     {
-                        EmperorSideSelect.job = (JobClass)int.Parse(test);
+                        EmperorSideSelect.job = (JobClass)System.Enum.Parse(typeof(JobClass), test);
                     }
                     else
                     {
-                        SlavesSideSelect.job = (JobClass)int.Parse(test);
+                        Debug.Log(test);
+                        SlavesSideSelect.job  = (JobClass)System.Enum.Parse(typeof(JobClass), test);
                     }
-                    Debug.Log("受け取ったデータ = " + (JobClass)int.Parse(test));
+                    Debug.Log("受け取ったデータ = " + test);
                 }
             }
         }

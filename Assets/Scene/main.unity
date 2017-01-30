@@ -848,7 +848,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad4d18559fc49d04ea06328b0453c155, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  job: 1
+  job: 2
   board: {fileID: 1671376687}
 --- !u!4 &851675664
 Transform:

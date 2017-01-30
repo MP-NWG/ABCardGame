@@ -6,9 +6,6 @@ namespace GameMain
 {
     public class MainLoader : MonoBehaviour
     {
-        [SerializeField, Tooltip("説明文")]
-        public PlayerSide job;
-
         [SerializeField]
         GameObject board;
     
@@ -16,7 +13,10 @@ namespace GameMain
         {
             Vector3 scale = board.transform.localScale;
 
-            switch(job)
+            int        id   = PlayerPrefs.GetInt("Playerside");
+            PlayerSide side = (PlayerSide)System.Enum.ToObject(typeof(PlayerSide), id);
+
+            switch(side)
             {
                 case PlayerSide.Emperor: scale.y =  1; break;
                 case PlayerSide.Slave:   scale.y = -1; break;
