@@ -14,6 +14,9 @@ namespace GameMain
         private CardInfo   EmperorSideSelect;
         private CardInfo   SlavesSideSelect;
 
+        [SerializeField]
+        private PlayerSelectArea playerSelectArea;
+
         void Start()
         {
 
@@ -40,10 +43,10 @@ namespace GameMain
         {
             switch(card.side)
             {
-                case PlayerSide.Emperor: EmperorSideSelect = card; break;
-                case PlayerSide.Slave:   SlavesSideSelect  = card; break;
+                case PlayerSide.Emperor: EmperorSideSelect = card; return;
+                case PlayerSide.Slave:   SlavesSideSelect  = card; return;
             }
-
+            
             Debug.LogError("不正な値です");
             throw null;
         }
@@ -60,27 +63,77 @@ namespace GameMain
             throw null;
         }
 
+        /// <summary>プレイヤーが選択したサイドの取得 </summary>
+        /// <returns>プレイヤーが選択したサイド</returns>
+        PlayerSide GetActivePlayerSide()
+        {
+            //idから変換
+            int id = PlayerPrefs.GetInt("");
+            PlayerSide side = (PlayerSide)System.Enum.ToObject(typeof(PlayerSide), id);
+            return side;
+        }
+
         public void MoveCardBattlePlace(CardInfo card)
         {
             GameObject battlePlace = GetBattlePlace(card.side);
             Vector3    moveTo      = battlePlace.transform.position;
-
-            StartCoroutine(MoveCard(card, moveTo));
-            SetBattlePlace(card);
+            
+            Debug.Log(card.ToString());
 
             //既に選択しているカードがあるか
-            CardInfo selectedCard = GetSelectCard(card.side);
-            if(selectedCard != null)
+            CardInfo selectCard = GetSelectCard(card.side);
+            if(selectCard != null)
             {
-                moveTo = card.card.transform.position;
-                StartCoroutine(MoveCard(selectedCard, moveTo));
+                Vector3 returnPos = card.card.transform.position;
+
+                StartCoroutine(MoveCard(card.card.transform,       moveTo, 
+                                        selectCard.card.transform, returnPos));
             }
+            else
+            {
+                StartCoroutine(MoveCard(card, moveTo));
+            }
+            
+            SetBattlePlace(card);
         }
 
         private IEnumerator MoveCard(CardInfo card, Vector3 to)
         {
             card.card.transform.position = to;
             yield return null;
+        }
+
+        private IEnumerator MoveCard(Transform selectCard,   Vector3 battlePlacePosition,
+                                     Transform unSelectCard, Vector3 selectCardPosition)
+        {
+            selectCard.position   = battlePlacePosition;
+            unSelectCard.position = selectCardPosition;
+
+            yield return null;
+        }
+
+        /// <summary> カードを確定し、サーバーに送る </summary>
+        public void ConfirmCard()
+        {
+            //PlayerSide side = GetActivePlayerSide();
+            //if(GetSelectCard(side) == null)
+            
+            //デバッグ用
+
+            PlayerSide side = GetComponent<MainLoader>().job;
+
+            Debug.Log(side.ToString());
+
+            if(GetSelectCard(side) == null)
+            {
+                Debug.Log("選択されているカード無し");
+                return;
+            }
+
+            playerSelectArea.cardSelect = false;
+
+            CardInfo selectCard = GetSelectCard(side);
+            SendCardServer(selectCard);
         }
 
         /// <summary> カードの情報を送る </summary>
@@ -101,6 +154,14 @@ namespace GameMain
         /// <returns> 勝ったプレイヤーのサイド </returns>
         public PlayerSide Judge()
         {
+
+            bool[][] JudgeGraph = new bool[][]
+            {
+                new bool[] {   },
+                new bool[] {   },
+                new bool[] {   }
+            };
+
             throw null;
         }
 
