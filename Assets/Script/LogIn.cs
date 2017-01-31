@@ -1,18 +1,22 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 
 
-public class LogIn : SingletonMonoBehaviourFast<LogIn>
+public class LogIn : SingletonMonoBehaviourFast<LogIn>//, IPointerDownHandler
 {
 
-    //public GameManager mManager;
-    //public string id;
+    UserID muserID;
 
     //カギ
     //string Sidekey = "Playerside";
-    public int Plyernum;
+    public int Playernum;
 
+    void Start()
+    {
+        muserID = gameObject.GetComponent<UserID>();
+    }
     void Login(string id)
     {
         //mManager.mID = id;
@@ -22,16 +26,23 @@ public class LogIn : SingletonMonoBehaviourFast<LogIn>
     //プレイヤー１Button
     public void Plyer1()
     {
-        Plyernum = 1;
-        //PlayerPrefs.SetInt(Sidekey, Plyernum);
-        SceneManager.LoadScene("main");
+        Playernum = 1;
+        muserID.getPlayerNum();
+        //SceneManager.LoadScene("main");
     }
+
     //プレイヤー2ボタン
     public void Plyer2()
     {
-        Plyernum = 2;
-        //PlayerPrefs.SetInt(Sidekey, Plyernum);
-        SceneManager.LoadScene("main");
+        Playernum = 2;
+
+        
+        //SceneManager.LoadScene("main");
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        Debug.Log(this.gameObject.name);
     }
 
     //デバッグ用

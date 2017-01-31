@@ -3,9 +3,7 @@ using System.Collections;
 
 public class UserID : MonoBehaviour
 {
-
-    //
-    int mPlayernun;
+   public int mPlayernun;
 
     // Use this for initialization
     void Start()
@@ -13,10 +11,11 @@ public class UserID : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-
     // Update is called once per frame
-    void Update()
+    void Update()    {          }
+
+    public void getPlayerNum()
     {
-        mPlayernun = LogIn.Instance.Plyernum;
+        //mPlayernun = LogIn.Instance.Playernum;
     }
 }
