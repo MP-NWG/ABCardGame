@@ -145,8 +145,6 @@ namespace GameMain
             //相手の選択待ち
             PlayerSide enemySide = GetEnemyPlayerSide();
             ReceiveCardServer(enemySide);
-
-
         }
 
         /// <summary> カードの情報を送る </summary>
@@ -185,6 +183,8 @@ namespace GameMain
         /// <returns></returns>
         IEnumerator SetJob(CardInfo info)
         {
+            Debug.Log("ﾌﾟﾚｲﾔｰサイド = " + info.side);
+            Debug.Log("http://127.0.0.1:8888/ABCardGame/" + "Player"+ (int)info.side + "DataSave.php?class=" + info.job.ToString());
             UnityWebRequest request = UnityWebRequest.Get("http://127.0.0.1:8888/ABCardGame/" + "Player"+ (int)info.side + "DataSave.php?class=" + info.job.ToString());
             yield return request.Send();
 
@@ -211,6 +211,7 @@ namespace GameMain
         /// <returns></returns>
         IEnumerator GetJob(PlayerSide side)
         {
+            Debug.Log("http://127.0.0.1:8888/ABCardGame/" + "Player"+ (int)side+ "DataGet.php");
             UnityWebRequest request = UnityWebRequest.Get("http://127.0.0.1:8888/ABCardGame/" + "Player"+ (int)side+ "DataGet.php");
             yield return request.Send();
 
@@ -226,20 +227,23 @@ namespace GameMain
                 if (request.responseCode == 200)
                 {
                     string test = request.downloadHandler.text;
-                    if (test == "") StartCoroutine(GetJob(side));
+                    if (test == "")
+                    {
+                        yield return new WaitForSecondsRealtime(3.0f);
+                        StartCoroutine(GetJob(side));
+                    }
+                    Debug.Log(test);
                     if (side == PlayerSide.Emperor)
                     {
                         EmperorSideSelect.job = (JobClass)System.Enum.Parse(typeof(JobClass), test);
                     }
                     else
                     {
-                        Debug.Log(test);
                         SlavesSideSelect.job  = (JobClass)System.Enum.Parse(typeof(JobClass), test);
                     }
                     Debug.Log("受け取ったデータ = " + test);
                 }
             }
         }
-
     }
 }
