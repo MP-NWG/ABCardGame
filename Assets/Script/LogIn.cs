@@ -6,16 +6,14 @@ using UnityEngine.EventSystems;
 
 public class LogIn : SingletonMonoBehaviourFast<LogIn>//, IPointerDownHandler
 {
-
     UserID muserID;
-
     //カギ
     //string Sidekey = "Playerside";
     public int Playernum;
 
     void Start()
     {
-        muserID = gameObject.GetComponent<UserID>();
+        muserID = GameObject.Find("UserIdData").GetComponent<UserID>();
     }
     void Login(string id)
     {
@@ -28,16 +26,15 @@ public class LogIn : SingletonMonoBehaviourFast<LogIn>//, IPointerDownHandler
     {
         Playernum = 1;
         muserID.getPlayerNum();
-        //SceneManager.LoadScene("main");
+        SceneManager.LoadScene("main");
     }
 
     //プレイヤー2ボタン
     public void Plyer2()
     {
         Playernum = 2;
-
-        
-        //SceneManager.LoadScene("main");
+        muserID.getPlayerNum();
+        SceneManager.LoadScene("main");
     }
 
     public void OnPointerDown(PointerEventData eventData)

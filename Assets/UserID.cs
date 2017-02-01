@@ -3,12 +3,16 @@ using System.Collections;
 
 public class UserID : MonoBehaviour
 {
-   public int mPlayernun;
-
+    //
+    public LogIn Login_script;
+    //
+    public int mPlayernun;
     // Use this for initialization
     void Start()
     {
         DontDestroyOnLoad(gameObject);
+        Login_script = GameObject.Find("LoginManager").GetComponent<LogIn>();
+       
     }
 
     // Update is called once per frame
@@ -16,6 +20,7 @@ public class UserID : MonoBehaviour
 
     public void getPlayerNum()
     {
-        //mPlayernun = LogIn.Instance.Playernum;
+        //
+        mPlayernun = Login_script.Playernum;
     }
 }
