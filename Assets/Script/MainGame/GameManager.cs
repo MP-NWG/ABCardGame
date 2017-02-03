@@ -87,7 +87,7 @@ namespace GameMain
             GameObject battlePlace = GetBattlePlace(card.side);
             Vector3    moveTo      = battlePlace.transform.position;
             
-            Debug.Log(card.ToString());
+            //Debug.Log(card.ToString());
 
             //既に選択しているカードがあるか
             CardInfo selectCard = GetSelectCard(card.side);

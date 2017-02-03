@@ -27,7 +27,7 @@ namespace GameMain
         //カードが選択された場合
         public void OnPointerDown(PointerEventData eventData)
         {
-            Debug.Log("aaaaaa");
+            //Debug.Log("aaaaaa");
             GameManager.Instance.MoveCardBattlePlace(info);
         }
     }
