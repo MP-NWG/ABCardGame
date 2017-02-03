@@ -18,6 +18,7 @@ namespace GameMain
         {
             cardSelect = true;
             image = GetComponent<Image>();
+            image.raycastTarget = false;
         }
 
         void Update()

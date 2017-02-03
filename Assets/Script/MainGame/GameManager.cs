@@ -68,10 +68,7 @@ namespace GameMain
         /// <returns>プレイヤーが選択したサイド</returns>
         PlayerSide GetActivePlayerSide()
         {
-            //idから変換
-            int id = PlayerPrefs.GetInt("Playerside");
-            PlayerSide side = (PlayerSide)System.Enum.ToObject(typeof(PlayerSide), id);
-            return side;
+            return PlayerData.instance.side;
         }
 
         /// <summary> 敵サイドの情報の取得</summary>

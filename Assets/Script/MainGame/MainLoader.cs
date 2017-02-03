@@ -12,9 +12,8 @@ namespace GameMain
         void Start()
         {
             Vector3 scale = board.transform.localScale;
-
-            int        id   = PlayerPrefs.GetInt("Playerside");
-            PlayerSide side = (PlayerSide)System.Enum.ToObject(typeof(PlayerSide), id);
+            
+            PlayerSide side = PlayerData.Instance.side;
 
             switch(side)
             {
