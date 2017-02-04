@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
-using UnityEngine.Networking;
 
 namespace GameMain
 {
@@ -13,6 +11,8 @@ namespace GameMain
 
         public  GameObject EmperorBattlePlace;
         public  GameObject SlaveBattlePlace;
+
+        public  SceneChanger sceneChanger;
 
         private CardInfo emperorSideSelect;
         public  CardInfo EmperorSideSelect
@@ -40,11 +40,7 @@ namespace GameMain
             server = GetComponent<GameMainServer>();
             emperorSideSelect = new CardInfo();
             slavesSideSelect  = new CardInfo();
-        }
-
-        void Update()
-        {
-
+            SendInitSaver();
         }
 
         GameObject GetBattlePlace(PlayerSide side)
@@ -200,6 +196,16 @@ namespace GameMain
             server.ReceiveCardServer(enemySide, OnReceiveJob);
         }
 
+        void SendInitSaver()
+        {
+            if(GetActivePlayerSide() == PlayerSide.Slave)
+            {
+                //奴隷側がServerに初期化処理を送る
+                //まぁ 奴隷だもんね
+                server.InitServerData();
+            }
+        }
+
         /// <summary> 受け取り完了したときに呼ばれる関数 </summary>
         /// <param name="">受け取ったデータ</param>
         void OnReceiveJob(string job)
@@ -222,7 +228,7 @@ namespace GameMain
             //true  勝ち
             //false 負け
             //null  引き分け
-            bool?[][] JudgeGraph = new bool?[][]
+            bool?[][] JudgeTable = new bool?[][]
             {
                 //自分        市民    皇帝    奴隷      // 相手
                 new bool?[] { null,  true, false },   // 市民
@@ -230,7 +236,7 @@ namespace GameMain
                 new bool?[] { true, false,  null }    // 奴隷
             };
             
-            return JudgeGraph[(int)self][(int)enemy];
+            return JudgeTable[(int)self][(int)enemy];
         }
         
         IEnumerator ShowGameResult()
@@ -242,21 +248,10 @@ namespace GameMain
             CardInfo enemy = GetSelectCard(GetEnemyPlayerSide());
             
             bool? result = Judge(self.job, enemy.job);
-            if(result.HasValue)
-            {
-                if(result.Value == true)
-                {
-                    Debug.Log("You Win");
-                }
-                else
-                {
-                    Debug.Log("You Lose");
-                }
-            }
-            else
-            {
-                Debug.Log("Draw");
-            }
+
+            yield return new WaitForSeconds(5.0f);
+
+            TurnEnd(result);
         }
 
         IEnumerator ShowEnemyCard()
@@ -266,6 +261,33 @@ namespace GameMain
             Transform enemyCard  = info.card.transform;
             enemyCard.localScale = new Vector3(1, 1);
             yield return null;
+        }
+
+        void TurnEnd(bool? result)
+        {
+            if(result.HasValue) //勝敗がついた
+            {
+                if(result.Value)
+                {
+                    //勝利
+                    PlayerData.Instance.point++;
+                }
+
+                
+                //この試合での勝敗がついたので次へ
+                //シーン移動
+                //sceneChanger.SceneChange();
+                return;
+            }
+            else //引き分け
+            {
+                //勝敗がつくまで
+                //初期化
+                SendInitSaver();
+                Destroy(emperorSideSelect.card);
+                Destroy(slavesSideSelect .card);
+                playerSelectArea.cardSelect = true;
+            }
         }
     }
 }

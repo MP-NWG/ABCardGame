@@ -17,7 +17,7 @@ namespace GameMain
 
         void Start()
         {
-            InitServerData();
+
         }
 
         /// <summary>

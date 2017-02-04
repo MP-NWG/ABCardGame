@@ -13,4 +13,8 @@ public class PlayerData : SingletonMonoBehaviourFast<PlayerData>
 
     //プレイヤーの情報
     public GameMain.PlayerSide side;
+
+    public int point = 0;
+    
+    public int battleNum = 0;
 }
