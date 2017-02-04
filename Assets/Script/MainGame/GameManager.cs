@@ -90,7 +90,7 @@ namespace GameMain
             return PlayerData.instance.side;
         }
 
-        /// <summary> 敵サイドの情報の取得</summary>
+        /// <summary> 敵サイドの情報の取得 </summary>
         /// <returns> 敵サイドの情報 </returns>
         PlayerSide GetEnemyPlayerSide()
         {
@@ -99,6 +99,32 @@ namespace GameMain
             if(playerSide == PlayerSide.Slave)   return PlayerSide.Emperor;
 
             throw null;
+        }
+
+        /// <summary> 敵のカードをセット </summary>
+        /// <param name="jobClass">セットするカードの役職</param>
+        void EnemySetCard(JobClass jobClass)
+        {
+            PlayerSide side = GetEnemyPlayerSide();
+
+            //相手のカードを取得
+            GameObject enemyCards = null;
+            switch(side)
+            {
+                case PlayerSide.Emperor: enemyCards = EmperorCardPack; break;
+
+                case PlayerSide.Slave:   enemyCards = SlaveCardPack;   break;
+            }
+
+            //カードに変換
+            Transform enemySelectedObj = enemyCards.transform.FindChild(jobClass.ToString());
+            CardInfo  enemySelecteCard = enemySelectedObj.GetComponent<SelectCard>().info;
+
+            SetBattlePlaceCard(enemySelecteCard);
+
+            //敵のカードをバトル場にセット
+            GameObject moveTo = GetBattlePlace(enemySelecteCard.side);
+            StartCoroutine(MoveCard(enemySelecteCard, moveTo.transform.position));
         }
 
         public void MoveCardBattlePlace(CardInfo card)
@@ -174,50 +200,72 @@ namespace GameMain
             server.ReceiveCardServer(enemySide, OnReceiveJob);
         }
 
-        /// <summary> 勝敗判定 </summary>
-        /// <returns> 勝ったプレイヤーのサイド null=引き分け </returns>
-        public PlayerSide? Judge()
-        {
-
-            bool[][] JudgeGraph = new bool[][]
-            {
-                new bool[] {   },
-                new bool[] {   },
-                new bool[] {   }
-            };
-
-            throw null;
-        }
-
-        /// <summary>
-        /// 受け取り完了したときに呼ばれる関数
-        /// </summary>
+        /// <summary> 受け取り完了したときに呼ばれる関数 </summary>
         /// <param name="">受け取ったデータ</param>
         void OnReceiveJob(string job)
         {
             Debug.Log("Receive");
             JobClass jobClass = (JobClass)System.Enum.Parse(typeof(JobClass), job);
 
-            PlayerSide side = GetEnemyPlayerSide();
+            EnemySetCard(jobClass);
 
-            //相手のカードを取得
-            GameObject enemyCards = null;
-            switch(side)
+            //接続待ち表示を消す
+            waitingMessage.SetActive(false);
+
+            StartCoroutine(ShowGameResult());
+        }
+
+        /// <summary> 勝敗判定 </summary>
+        /// <returns> プレイヤー側が勝ったか null=引き分け </returns>
+        public bool? Judge(JobClass self, JobClass enemy)
+        {
+            //true  勝ち
+            //false 負け
+            //null  引き分け
+            bool?[][] JudgeGraph = new bool?[][]
             {
-                case PlayerSide.Emperor: enemyCards = EmperorCardPack; break;
-
-                case PlayerSide.Slave:   enemyCards = SlaveCardPack;   break;
+                //自分        市民    皇帝    奴隷      // 相手
+                new bool?[] { null,  true, false },   // 市民
+                new bool?[] {false,  null,  true },   // 皇帝
+                new bool?[] { true, false,  null }    // 奴隷
+            };
+            
+            return JudgeGraph[(int)self][(int)enemy];
+        }
+        
+        IEnumerator ShowGameResult()
+        {
+            Coroutine wait = StartCoroutine(ShowEnemyCard());
+            yield return wait;
+            
+            CardInfo self  = GetSelectCard(GetActivePlayerSide());
+            CardInfo enemy = GetSelectCard(GetEnemyPlayerSide());
+            
+            bool? result = Judge(self.job, enemy.job);
+            if(result.HasValue)
+            {
+                if(result.Value == true)
+                {
+                    Debug.Log("You Win");
+                }
+                else
+                {
+                    Debug.Log("You Lose");
+                }
             }
+            else
+            {
+                Debug.Log("Draw");
+            }
+        }
 
-            //カードに変換
-            Transform enemySelectedObj = enemyCards.transform.FindChild(jobClass.ToString());
-            CardInfo  enemySelecteCard = enemySelectedObj.GetComponent<SelectCard>().info;
-
-            SetBattlePlaceCard(enemySelecteCard);
-
-            //敵のカードをバトル場にセット
-            GameObject moveTo = GetBattlePlace(enemySelecteCard.side);
-            StartCoroutine(MoveCard(enemySelecteCard, moveTo.transform.position));
+        IEnumerator ShowEnemyCard()
+        {
+            //ここにオープンアニメーション
+            CardInfo  info       = GetSelectCard(GetEnemyPlayerSide());
+            Transform enemyCard  = info.card.transform;
+            enemyCard.localScale = new Vector3(1, 1);
+            yield return null;
         }
     }
 }
