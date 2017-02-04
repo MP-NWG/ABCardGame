@@ -11,19 +11,32 @@ namespace GameMain
         public  GameObject EmperorBattlePlace;
         public  GameObject SlaveBattlePlace;
 
-        private CardInfo   EmperorSideSelect;
-        private CardInfo   SlavesSideSelect;
+        private CardInfo emperorSideSelect;
+        public  CardInfo EmperorSideSelect
+        {
+            get { return emperorSideSelect; }
+        }
+
+        private CardInfo slavesSideSelect;
+        public  CardInfo SlavesSideSelect
+        {
+            get { return slavesSideSelect; }
+        }
 
         [SerializeField]
         private PlayerSelectArea playerSelectArea;
+        
 
         [SerializeField]
         private GameObject waitingMessage;
 
+        GameMainServer server;
+
         void Start()
         {
-            EmperorSideSelect = new CardInfo();
-            SlavesSideSelect  = new CardInfo();
+            server = GetComponent<GameMainServer>();
+            emperorSideSelect = new CardInfo();
+            slavesSideSelect  = new CardInfo();
         }
 
         void Update()
@@ -47,8 +60,8 @@ namespace GameMain
         {
             switch(card.side)
             {
-                case PlayerSide.Emperor: EmperorSideSelect = card; return;
-                case PlayerSide.Slave:   SlavesSideSelect  = card; return;
+                case PlayerSide.Emperor: emperorSideSelect = card; return;
+                case PlayerSide.Slave:   slavesSideSelect  = card; return;
             }
             
             Debug.LogError("不正な値です");
@@ -59,8 +72,8 @@ namespace GameMain
         {
             switch(side)
             {
-                case PlayerSide.Emperor: return EmperorSideSelect;
-                case PlayerSide.Slave:   return SlavesSideSelect;
+                case PlayerSide.Emperor: return emperorSideSelect;
+                case PlayerSide.Slave:   return slavesSideSelect;
             }
 
             Debug.LogError("不正な値です");
@@ -90,12 +103,13 @@ namespace GameMain
             GameObject battlePlace = GetBattlePlace(card.side);
             Vector3    moveTo      = battlePlace.transform.position;
             
-            //Debug.Log(card.ToString());
+            Debug.Log(card.ToString());
 
             //既に選択しているカードがあるか
             CardInfo selectCard = GetSelectCard(card.side);
             if(selectCard.card != null)
             {
+                Debug.Log("trade");
                 Vector3 returnPos = card.card.transform.position;
 
                 StartCoroutine(MoveCard(card.card.transform,       moveTo, 
@@ -121,6 +135,8 @@ namespace GameMain
             selectCard.position   = battlePlacePosition;
             unSelectCard.position = selectCardPosition;
 
+            Debug.Log("trade end");
+
             yield return null;
         }
 
@@ -143,25 +159,11 @@ namespace GameMain
 
             //送信
             CardInfo selectCard = GetSelectCard(side);
-            SendCardServer(selectCard);
+            server.SendCardServer(selectCard);
             
             //相手の選択待ち
             PlayerSide enemySide = GetEnemyPlayerSide();
-            ReceiveCardServer(enemySide);
-        }
-
-        /// <summary> カードの情報を送る </summary>
-        /// <param name="info"> カードの情報 </param>
-        public void SendCardServer(CardInfo info)
-        {
-            StartCoroutine(SetJob(info));
-        }
-
-        /// <summary> サーバーからデータを受け取る </summary>
-        /// <param name="side"> プレイヤーのサイド </param>
-        public void ReceiveCardServer(PlayerSide side)
-        {
-            StartCoroutine(GetJob(side));
+            server.ReceiveCardServer(enemySide, OnReceiveJob);
         }
 
         /// <summary> 勝敗判定 </summary>
@@ -180,83 +182,15 @@ namespace GameMain
         }
 
         /// <summary>
-        /// カードをPHPに送り出す
-        /// </summary>
-        /// <param name="info"></param>
-        /// <returns></returns>
-        IEnumerator SetJob(CardInfo info)
-        {
-            Debug.Log("ﾌﾟﾚｲﾔｰサイド = " + info.side);
-            Debug.Log("http://127.0.0.1:8888/ABCardGame/" + "Player"+ (int)info.side + "DataSave.php?class=" + info.job.ToString());
-            UnityWebRequest request = UnityWebRequest.Get("http://127.0.0.1:8888/ABCardGame/" + "Player"+ (int)info.side + "DataSave.php?class=" + info.job.ToString());
-            yield return request.Send();
-
-            // 何らかのエラーがあったら
-            if (request.isError)
-            {
-                // エラー処理
-                Debug.Log("エラー");
-            }
-            else {
-                Debug.Log(request.responseCode);
-                // レスポンスコードを見る
-                if (request.responseCode == 200)
-                {
-                    string test = request.downloadHandler.text;
-                    Debug.Log(test);
-                }
-            }
-        }
-
-        /// <summary>
-        /// カードをPHPから受け取る
-        /// </summary>
-        /// <returns></returns>
-        IEnumerator GetJob(PlayerSide side)
-        {
-            Debug.Log("http://127.0.0.1:8888/ABCardGame/" + "Player"+ (int)side+ "DataGet.php");
-            UnityWebRequest request = UnityWebRequest.Get("http://127.0.0.1:8888/ABCardGame/" + "Player"+ (int)side+ "DataGet.php");
-            yield return request.Send();
-
-            // 何らかのエラーがあったら
-            if (request.isError)
-            {
-                // エラー処理
-                Debug.Log("エラー");
-            }
-            else {
-                Debug.Log(request.responseCode);
-                // レスポンスコードを見る
-                if (request.responseCode == 200)
-                {
-                    string test = request.downloadHandler.text;
-                    if (test == "")
-                    {
-                        yield return new WaitForSecondsRealtime(3.0f);
-                        StartCoroutine(GetJob(side));
-                    }
-                    Debug.Log(test);
-                    if (side == PlayerSide.Emperor)
-                    {
-                        EmperorSideSelect.job = (JobClass)System.Enum.Parse(typeof(JobClass), test);
-                    }
-                    else
-                    {
-                        SlavesSideSelect.job  = (JobClass)System.Enum.Parse(typeof(JobClass), test);
-                    }
-                    OnReceiveJob(test);
-                    Debug.Log("受け取ったデータ = " + test);
-                }
-            }
-        }
-
-        /// <summary>
         /// 受け取り完了したときに呼ばれる関数
         /// </summary>
         /// <param name="">受け取ったデータ</param>
         void OnReceiveJob(string job)
         {
+            Debug.Log("Receive");
             JobClass jobClass = (JobClass)System.Enum.Parse(typeof(JobClass), job);
+
+
         }
     }
 }

@@ -10,6 +10,9 @@ namespace GameMain
         GameObject board;
 
         [SerializeField]
+        GameObject battlePlace;
+
+        [SerializeField]
         GameObject emperorCards;
 
         [SerializeField]
@@ -33,7 +36,8 @@ namespace GameMain
                     break;
             }
 
-            board.transform.Rotate(Vector3.forward, boardRot);
+            board      .transform.Rotate(Vector3.forward, boardRot);
+            battlePlace.transform.Rotate(Vector3.forward, boardRot);
         }
 
         void SetCardBack(Transform cards)
