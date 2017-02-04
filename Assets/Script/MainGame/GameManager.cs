@@ -17,6 +17,9 @@ namespace GameMain
         [SerializeField]
         private PlayerSelectArea playerSelectArea;
 
+        [SerializeField]
+        private GameObject waitingMessage;
+
         void Start()
         {
             EmperorSideSelect = new CardInfo();
@@ -135,6 +138,9 @@ namespace GameMain
             //再度選択できないようにする
             playerSelectArea.cardSelect = false;
 
+            //表示
+            waitingMessage.SetActive(true);
+
             //送信
             CardInfo selectCard = GetSelectCard(side);
             SendCardServer(selectCard);
@@ -238,9 +244,19 @@ namespace GameMain
                     {
                         SlavesSideSelect.job  = (JobClass)System.Enum.Parse(typeof(JobClass), test);
                     }
+                    OnReceiveJob(test);
                     Debug.Log("受け取ったデータ = " + test);
                 }
             }
+        }
+
+        /// <summary>
+        /// 受け取り完了したときに呼ばれる関数
+        /// </summary>
+        /// <param name="">受け取ったデータ</param>
+        void OnReceiveJob(string job)
+        {
+            JobClass jobClass = (JobClass)System.Enum.Parse(typeof(JobClass), job);
         }
     }
 }
