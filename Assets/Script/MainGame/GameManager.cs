@@ -276,7 +276,7 @@ namespace GameMain
                 
                 //この試合での勝敗がついたので次へ
                 //シーン移動
-                //sceneChanger.SceneChange();
+                sceneChanger.SceneChange();
                 return;
             }
             else //引き分け
