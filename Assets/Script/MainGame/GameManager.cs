@@ -8,6 +8,9 @@ namespace GameMain
     /// <summary>ゲームマネージャー(シングルトン) </summary>
     public class GameManager : SingletonMonoBehaviourFast<GameManager>
     {
+        public  GameObject EmperorCardPack;
+        public  GameObject SlaveCardPack;
+
         public  GameObject EmperorBattlePlace;
         public  GameObject SlaveBattlePlace;
 
@@ -56,7 +59,7 @@ namespace GameMain
             throw null;
         }
 
-        void SetBattlePlace(CardInfo card)
+        void SetBattlePlaceCard(CardInfo card)
         {
             switch(card.side)
             {
@@ -120,12 +123,17 @@ namespace GameMain
                 StartCoroutine(MoveCard(card, moveTo));
             }
             
-            SetBattlePlace(card);
+            SetBattlePlaceCard(card);
         }
 
         private IEnumerator MoveCard(CardInfo card, Vector3 to)
         {
-            card.card.transform.position = to;
+            yield return StartCoroutine(MoveCard(card.card.transform, to));
+        }
+
+        private IEnumerator MoveCard(Transform card, Vector3 to)
+        {
+            card.position = to;
             yield return null;
         }
 
@@ -167,8 +175,8 @@ namespace GameMain
         }
 
         /// <summary> 勝敗判定 </summary>
-        /// <returns> 勝ったプレイヤーのサイド </returns>
-        public PlayerSide Judge()
+        /// <returns> 勝ったプレイヤーのサイド null=引き分け </returns>
+        public PlayerSide? Judge()
         {
 
             bool[][] JudgeGraph = new bool[][]
@@ -190,7 +198,26 @@ namespace GameMain
             Debug.Log("Receive");
             JobClass jobClass = (JobClass)System.Enum.Parse(typeof(JobClass), job);
 
+            PlayerSide side = GetEnemyPlayerSide();
 
+            //相手のカードを取得
+            GameObject enemyCards = null;
+            switch(side)
+            {
+                case PlayerSide.Emperor: enemyCards = EmperorCardPack; break;
+
+                case PlayerSide.Slave:   enemyCards = SlaveCardPack;   break;
+            }
+
+            //カードに変換
+            Transform enemySelectedObj = enemyCards.transform.FindChild(jobClass.ToString());
+            CardInfo  enemySelecteCard = enemySelectedObj.GetComponent<SelectCard>().info;
+
+            SetBattlePlaceCard(enemySelecteCard);
+
+            //敵のカードをバトル場にセット
+            GameObject moveTo = GetBattlePlace(enemySelecteCard.side);
+            StartCoroutine(MoveCard(enemySelecteCard, moveTo.transform.position));
         }
     }
 }

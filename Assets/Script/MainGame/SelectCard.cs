@@ -8,7 +8,7 @@ namespace GameMain
 {
     public class SelectCard : MonoBehaviour, IPointerDownHandler
     {
-        CardInfo info = new CardInfo();
+        public CardInfo info = new CardInfo();
 
         //カードの情報を書き出す
         private void Start()
