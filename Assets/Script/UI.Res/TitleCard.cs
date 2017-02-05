@@ -12,7 +12,7 @@ public class TitleCard : MonoBehaviour {
 	void Update () {
         transform.Rotate(new Vector3(0, 2, 0));
         y += -_Speed * Time.deltaTime;
-        if (transform.localPosition.y <= -500)
+        if (transform.localPosition.y <= -729)
         {
             y = 0;
         }
