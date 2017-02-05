@@ -35,6 +35,8 @@ namespace GameMain
 
         GameMainServer server;
 
+        bool isCardMove = false;
+
         void Start()
         {
             server = GetComponent<GameMainServer>();
@@ -99,7 +101,7 @@ namespace GameMain
 
         /// <summary> 敵のカードをセット </summary>
         /// <param name="jobClass">セットするカードの役職</param>
-        void EnemySetCard(JobClass jobClass)
+        Coroutine EnemySetCard(JobClass jobClass)
         {
             PlayerSide side = GetEnemyPlayerSide();
 
@@ -108,7 +110,6 @@ namespace GameMain
             switch(side)
             {
                 case PlayerSide.Emperor: enemyCards = EmperorCardPack; break;
-
                 case PlayerSide.Slave:   enemyCards = SlaveCardPack;   break;
             }
 
@@ -120,11 +121,13 @@ namespace GameMain
 
             //敵のカードをバトル場にセット
             GameObject moveTo = GetBattlePlace(enemySelecteCard.side);
-            StartCoroutine(MoveCard(enemySelecteCard, moveTo.transform.position));
+            return StartCoroutine(MoveCard(enemySelecteCard, moveTo.transform.position, true));
         }
 
         public void MoveCardBattlePlace(CardInfo card)
         {
+            if(isCardMove) return;
+
             GameObject battlePlace = GetBattlePlace(card.side);
             Vector3    moveTo      = battlePlace.transform.position;
             
@@ -137,37 +140,36 @@ namespace GameMain
                 Debug.Log("trade");
                 Vector3 returnPos = card.card.transform.position;
 
-                StartCoroutine(MoveCard(card.card.transform,       moveTo, 
-                                        selectCard.card.transform, returnPos));
+                StartCoroutine(MoveCard(card.card.transform,       moveTo,    true));
+                StartCoroutine(MoveCard(selectCard.card.transform, returnPos, false));
             }
             else
             {
-                StartCoroutine(MoveCard(card, moveTo));
+                StartCoroutine(MoveCard(card, moveTo, true));
             }
             
             SetBattlePlaceCard(card);
         }
 
-        private IEnumerator MoveCard(CardInfo card, Vector3 to)
+        private IEnumerator MoveCard(CardInfo card, Vector3 to, bool randPos)
         {
-            yield return StartCoroutine(MoveCard(card.card.transform, to));
+            yield return StartCoroutine(MoveCard(card.card.transform, to, randPos));
         }
 
-        private IEnumerator MoveCard(Transform card, Vector3 to)
+        private IEnumerator MoveCard(Transform card, Vector3 to, bool randPos)
         {
-            card.position = to;
-            yield return null;
-        }
+            isCardMove = true;
 
-        private IEnumerator MoveCard(Transform selectCard,   Vector3 battlePlacePosition,
-                                     Transform unSelectCard, Vector3 selectCardPosition)
-        {
-            selectCard.position   = battlePlacePosition;
-            unSelectCard.position = selectCardPosition;
+            if(randPos)
+            {
+                to += new Vector3(Random.Range(-0.25f, 0.25f), Random.Range(-0.25f, 0.25f));
+            }
+            Vector3 from = card.position;
+            LeanTween.move(card.gameObject, to, 0.5f)
+                        .setEase(LeanTweenType.easeOutQuad);
+            yield return new WaitForSeconds(0.5f);
 
-            Debug.Log("trade end");
-
-            yield return null;
+            isCardMove = false;
         }
 
         /// <summary> カードを確定し、サーバーに送る </summary>
@@ -211,14 +213,11 @@ namespace GameMain
         void OnReceiveJob(string job)
         {
             Debug.Log("Receive");
-            JobClass jobClass = (JobClass)System.Enum.Parse(typeof(JobClass), job);
-
-            EnemySetCard(jobClass);
-
+            
             //接続待ち表示を消す
             waitingMessage.SetActive(false);
 
-            StartCoroutine(ShowGameResult());
+            StartCoroutine(ShowGameResult(job));
         }
 
         /// <summary> 勝敗判定 </summary>
@@ -239,8 +238,13 @@ namespace GameMain
             return JudgeTable[(int)self][(int)enemy];
         }
         
-        IEnumerator ShowGameResult()
+        IEnumerator ShowGameResult(string job)
         {
+            JobClass jobClass = (JobClass)System.Enum.Parse(typeof(JobClass), job);
+            yield return EnemySetCard(jobClass);
+
+            yield return new WaitForSeconds(0.25f);
+
             Coroutine wait = StartCoroutine(ShowEnemyCard());
             yield return wait;
             
@@ -257,10 +261,14 @@ namespace GameMain
         IEnumerator ShowEnemyCard()
         {
             //ここにオープンアニメーション
-            CardInfo  info       = GetSelectCard(GetEnemyPlayerSide());
-            Transform enemyCard  = info.card.transform;
-            enemyCard.localScale = new Vector3(1, 1);
-            yield return null;
+            CardInfo   info       = GetSelectCard(GetEnemyPlayerSide());
+            GameObject enemyCard  = info.card;
+
+            float to = enemyCard.transform.position.x + 0.3f;
+
+            LeanTween.scaleX(enemyCard, 1, 1.5f);
+
+            yield return new WaitForSeconds(1.5f);
         }
 
         void TurnEnd(bool? result)
@@ -272,7 +280,6 @@ namespace GameMain
                     //勝利
                     PlayerData.Instance.point++;
                 }
-
                 
                 //この試合での勝敗がついたので次へ
                 //シーン移動
